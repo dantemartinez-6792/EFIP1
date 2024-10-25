@@ -16,11 +16,6 @@ idOperador,idEquipo,fechaSolicitud)
 values
 (1,37303910,601,'2024-06-05');
 
-insert into entrenamientoOperador (idEntreOpe, 
-idEntrenar,estadoEntrenamiento,totalHoras,cantidadEntrenamientos)
-values
-(10,1,'En curso',8,1);
-
 insert into registroHoras(idRegistroHoras, 
 idOpEntrenar,fechaEntrenamiento,cantidadHoras,tipoEntrenamiento)
 values
