@@ -17,19 +17,12 @@ fechaSolicitud date,
 foreign key(idOperador) references operador(dniOperador),
 foreign key (idEquipo) references equipo(codigoEquipo)
 );
-create table entrenamientoOperador (
-idEntreOpe int primary key,
-idEntrenar int,
-estadoEntrenamiento varchar (100),
-totalHoras double,
-cantidadEntrenamientos int,
-foreign key(idEntrenar) references inicioEntrenamiento(idEntrenamiento)
-);
+
 create table registroHoras (
 idRegistroHoras int primary Key,
 idOpEntrenar int,
 fechaEntrenamiento date,
 cantidadHoras double,
 tipoEntrenamiento varchar (100),
-foreign key(idOpEntrenar) references entrenamientoOperador(idEntreOpe)
+foreign key(idOpEntrenar) references inicioEntrenamiento(idEntrenameinto)
 );
