@@ -1,14 +1,20 @@
 package operadores;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Scanner;
+
+import javax.swing.JOptionPane;
 
 public class equipo {
 Scanner scanner = new Scanner(System.in);
 private Integer codigoEquipo;
 private String nombreEquipo;
 private String tipoEquipo;
-private static ArrayList<equipo> ListE = new ArrayList<equipo>();
+
 
 
 public equipo(Integer codigoEquipo, String nombreEquipo, String tipoEquipo) {
@@ -56,60 +62,115 @@ public void agregarEquipo() {
 	nombreEquipo = scanner.next();
 	System.out.println("Inserte el tipo de equipo:");
 	tipoEquipo= scanner.next();
-	ListE.add(new equipo(codigoEquipo,nombreEquipo,tipoEquipo));
+
+    try {
+    	   PreparedStatement stmt = conexionDB.conexionDB().prepareStatement("INSERT INTO equipo VALUES (?,?,?)");
+           stmt.setInt(1,codigoEquipo);
+           stmt.setString(2,nombreEquipo);
+           stmt.setString(3,tipoEquipo);
+        // execute insert SQL stetement
+           int retorno = stmt.executeUpdate();
+           if (retorno>0)
+            System.out.println("Equipo creado correctamente");   
+         conexionDB.desconectar();  //se cierra la conexion a la base de datos
 }
+catch(Exception e)
+{
+e.printStackTrace();
+}
+
+}
+
 
 	
 
 public void verRegistroEquipo() {
-    for(int i = 0; i < ListE.size(); i++){ 
-        equipo equipo =  ListE.get(i);      
-        System.out.println("Numero de Equipo: " + equipo.getCodigoEquipo());
-        System.out.println("Nombre del Equipo: " + equipo.getNombreEquipo());
-        System.out.println("Grupo: " + equipo.getTipoEquipo());      
-    }
+	ArrayList<equipo> ListE = new ArrayList<equipo>();
+	 try {
+		PreparedStatement stmt = conexionDB.conexionDB().prepareStatement("SELECT * FROM equipo");
+		ResultSet rs = stmt.executeQuery();
+		while(rs.next()) {
+			ListE.add(new equipo(rs.getInt("codigoEquipo"),rs.getString("nombreEquipo"),rs.getString("tipoEquipo")));
+
+		}
+	} catch (SQLException e) {
+		e.printStackTrace();
+	}  
+	
+   for(equipo equipo:ListE) {
+	        
+	        System.out.println("Codigo equipo: " + equipo.getCodigoEquipo());
+	        System.out.println("Nombre del equipo: " + equipo.getNombreEquipo());
+	        System.out.println("Tipo de equipo: " + equipo.getTipoEquipo());
+	        
+	        
+	    }
 	}
 
 
 public void modificarEquipo(int codigoEquipo,String nombreEquipo, String tipoEquipo) throws excepcionOperadores {
 	System.out.println("Ingrese el numero de Equipo que desea modificar:");
 	Integer codigo = scanner.nextInt();
-	for(equipo equipo:ListE) {
-		if(codigo==equipo.getCodigoEquipo()) {
-			System.out.println("Ingrese el nuevo nombre del equipo:");
+	 try {  
+         PreparedStatement stmt = conexionDB.conexionDB().prepareStatement("UPDATE equipo SET nombreEquipo=?, tipoEquipo=?"
+		+ "WHERE codigoEquipo="+codigo+"");
+			System.out.println("Ingrese el nombre correcto del equipo:");
 			nombreEquipo=scanner.next();
-			System.out.println("Ingrese el nuevo tipo de equipo");
+			System.out.println("Ingrese el tipo de equipo:");
 			tipoEquipo=scanner.next();
-			equipo.setNombreEquipo(nombreEquipo);
-			equipo.setTipoEquipo(tipoEquipo);
-		}
-		else {
-			throw new excepcionOperadores("El codigo del equipo ingresado no se encuentra registrado");
-		}
-		}
+        stmt.setString(1, nombreEquipo);
+        stmt.setString(2, tipoEquipo);
+
+        
+        if(stmt.executeUpdate() > 0){
+        
+            System.out.println("Los datos del equipo han sido modificados con éxito."); 
+                                          
+            
+        }else{
+        
+        	System.out.println("Los datos del equipo no se pudieron modificar."); 
+        
+        }
+				 }  catch(Exception e){
+				       e.printStackTrace();
+				    }
 	}
 	
 
 public void eliminarEquipo(int codigoEquipo,String nombreEquipo, String tipoEquipo) throws excepcionOperadores {
 	System.out.println("Ingrese el numero de equipo que desea modificar:");
 	Integer codigo = scanner.nextInt();
-	for(equipo equipo:ListE) {
-		if(codigo==equipo.getCodigoEquipo()) {
-			ListE.remove(codigoEquipo);	
-		}else {
-		throw new excepcionOperadores("El codigo ingresado no se encuentra registrado");
-	}
-	}
+	 try {   
+		    PreparedStatement stmt = conexionDB.conexionDB().prepareStatement("DELETE FROM equipo "+ "WHERE codigoEquipo = ?");         
+	        stmt.setInt(1, codigo);
+	        int retorno = stmt.executeUpdate();
+            if (retorno>0) {
+	        System.out.println("El equipo ha sido eliminado exitosamente"); 
+	        conexionDB.desconectar();
+            }
+            else {
+         System.out.println("El equipo no se encuentra registrado");
+            }
+
+	        	}
+	   catch(Exception e){
+	       e.printStackTrace();
+	    }
 }
 
-boolean existeEquipo(Integer claveE) {
-for(equipo equipo:ListE) {
-	if(claveE== equipo.getCodigoEquipo());
-	return true;
+public boolean existeEquipo(int claveE) {
+    boolean disponible = false;
+    try {
+    	PreparedStatement stmt = conexionDB.conexionDB().prepareStatement("SELECT count(*) FROM equipo WHERE codigoEquipo='" + claveE + "'");
+	    disponible = true;
+    } catch (SQLException e) {
+        System.out.println(e);
+    }
+    return disponible;
 }
-return false;
+
 	
-}
-
 
 }
+

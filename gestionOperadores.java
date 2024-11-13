@@ -1,5 +1,6 @@
 package operadores;
 
+import java.sql.Connection;
 import java.util.Scanner;
 
 
@@ -13,6 +14,7 @@ equipo equipo= new equipo(0, null, null);
 inicioEntrenamiento inicioEntrenamiento= new inicioEntrenamiento(0, 0, 0, null);
 registroHoras registroHoras=new registroHoras(null, null, null, 0, null);
 scanner = new Scanner(System.in);
+
 boolean ejecutando = true; 
 while(ejecutando) {
     System.out.println("_______________________________");

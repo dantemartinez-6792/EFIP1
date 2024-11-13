@@ -1,6 +1,12 @@
 package operadores;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -10,13 +16,13 @@ public class inicioEntrenamiento {
 public int idEntrenamiento;
 public int idOperador;
 public int idEquipo;
-public Date fechaSolicitud;
+public String fechaSolicitud;
 private static ArrayList<inicioEntrenamiento> Registro = new ArrayList<inicioEntrenamiento>();
 Scanner scanner = new Scanner(System.in);
-int b;
 
 
-public inicioEntrenamiento(int idEntrenamiento, int idOperador, int idEquipo, Date fechaSolicitud) {
+
+public inicioEntrenamiento(int idEntrenamiento, int idOperador, int idEquipo, String fechaSolicitud) {
 	this.idEntrenamiento = idEntrenamiento;
 	this.idOperador = idOperador;
 	this.idEquipo = idEquipo;
@@ -47,41 +53,64 @@ public void setIdEquipo(int idEquipo) {
 	this.idEquipo = idEquipo;
 }
 
-public Date getFechaSolicitud() {
+public String getFechaSolicitud() {
 	return fechaSolicitud;
 }
 
-public void setFechaSolicitud(Date fechaSolicitud) {
+public void setFechaSolicitud(String fechaSolicitud) {
 	this.fechaSolicitud = fechaSolicitud;
 }
 
 
 
-public void crearEntrenamiento(operador operador, equipo equipo) throws ParseException, excepcionOperadores{
-	b++;
+public void crearEntrenamiento(operador operador, equipo equipo) throws ParseException, excepcionOperadores, SQLException{
+	int b = 0;
 	System.out.println("Ingrese el numero de dni del operador a inicia entrenamiento:");
 	Integer dniOpe = scanner.nextInt();
 	System.out.println("Ingrese el equipo en el que entrenara el operador:");
 	Integer codEquipo=scanner.nextInt();
 	int clave=dniOpe;
 	int claveE=codEquipo;
-    		if(operador.existeOperador(clave) && equipo.existeEquipo(claveE)) {
-				idEntrenamiento=b;
+    if(operador.existeOperador(clave) && equipo.existeEquipo(claveE)) {
 				idOperador=dniOpe;
 				idEquipo=codEquipo;
 				System.out.println("Ingrese la fecha de incio de entrenamiento");
-				String fechaComoTexto = scanner.next();
-				String formato="dd/mm/yyyy";
-				SimpleDateFormat df = new SimpleDateFormat(formato);
-				 fechaSolicitud = df.parse(fechaComoTexto);
-				Registro.add(new inicioEntrenamiento(idEntrenamiento, idOperador, idEquipo, fechaSolicitud));
-				System.out.println("Se a creado inicio de entrenamiento de operador");
-
-
-    }else {
-		throw new excepcionOperadores("El valor ingresado no se encuentra registrado");
+				String fechaSolicitud = scanner.next();
+				SimpleDateFormat formato = new SimpleDateFormat("dd-MM-yyyy");
+			        Date parsed = formato.parse(fechaSolicitud);
+			        java.sql.Date sql = new java.sql.Date(parsed.getTime());
+			        try {
+			        	   PreparedStatement stmt = conexionDB.conexionDB().prepareStatement("INSERT INTO inicioEntrenamiento VALUES (?,?,?,?)");
+						   stmt.setInt(1,inicioEntrenamiento.idIncrementable());
+			               stmt.setInt(2,idOperador);
+			               stmt.setInt(3,idEquipo);
+			               stmt.setDate(4,sql);
+			            // execute insert SQL stetement
+			               int retorno = stmt.executeUpdate();
+			               if (retorno>0)
+			                System.out.println("Inicio de entrenamiento registrado correctamente");   
+		                 conexionDB.desconectar();  //se cierra la conexion a la base de datos
+		    }
+		    catch(Exception e)
+		    {
+		       e.printStackTrace();
+		    }}
     }
-    }
+
+public static int idIncrementable() {
+	int id=1;
+	try {
+	PreparedStatement stmt = conexionDB.conexionDB().prepareStatement("SELECT MAX(idEntrenamiento) FROM inicioEntrenamiento");
+	ResultSet rs = stmt.executeQuery();
+	while(rs.next()) {
+		id=rs.getInt(1) + 1;
+
+	}
+} catch (SQLException e) {
+	e.printStackTrace();
+} 
+	return id;
+}
 
 
 public void verRegistroInicioEntrenamiento() {
@@ -97,12 +126,16 @@ public void verRegistroInicioEntrenamiento() {
     }
 }
 
-boolean existeEntrenamiento(Integer claveG) {
-	for(inicioEntrenamiento inicioEntrenamiento:Registro) {
-		if(claveG== inicioEntrenamiento.getIdEntrenamiento());
-		return true;
-	}
-	return false;
-		
-	}
+
+public boolean existeEntrenamiento(int claveG) {
+    boolean disponible = false;
+    try {
+    	PreparedStatement stmt = conexionDB.conexionDB().prepareStatement("SELECT count(*) FROM inicioEntrenamiento WHERE idEntrenamiento='" + claveG + "'");
+	    disponible = true;
+    } catch (SQLException e) {
+        System.out.println(e);
+    }
+    return disponible;
+
+}
 }
